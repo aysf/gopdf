@@ -13,7 +13,7 @@ comes in.
 ## Features
 
 - [x] show PDF description detail
-- [ ] split PDF
+- [x] split PDF
 - [ ] Join 2 PDFs
 - [ ] Convert image to PDF
 - [ ] PDF Checking
@@ -21,3 +21,24 @@ comes in.
 - [ ] Compress PDF
 - [ ] Reorder PDF pages
 - [ ] Combine multiple PDF
+
+## Example
+
+1. Get PDF file info
+
+```
+http://localhost:1323/api/v1/pdf/info?path=/storage/pdf&name=camry_ebrochure.pdf
+```
+
+2. Split PDF
+
+```
+curl -X POST http://localhost:1323/api/v1/pdf/split \
+-H 'Content-Type: application/json' \
+-d '{"name":"camry_ebrochure.pdf","path":"/storage/pdf", "range":"1-3,3-4"}'
+```
+
+3. Join 2 PDFs
+
+
+
