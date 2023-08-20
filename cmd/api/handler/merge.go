@@ -28,7 +28,6 @@ func PdfMerge(c echo.Context) error {
 	dec.Decode(md)
 
 	w, _ := os.Getwd()
-
 	inFiles := []string{}
 
 	for i := 0; i < len(md.InFiles); i++ {
