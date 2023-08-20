@@ -90,6 +90,6 @@ curl -X POST http://localhost:1323/api/v1/pdf/compress \
 - Photo by <a href="https://unsplash.com/@neonbrand?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Kenny Eliason</a> on <a href="https://unsplash.com/photos/FcyipqujfGg?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
   
 
-[codecov-badge]: https://codecov.io/gh/aysf/gopdf/branch/master/graph/badge.svg?token=x
+[codecov-badge]: https://codecov.io/gh/aysf/gopdf/branch/master/graph/badge.svg?token=2QB9QJ2V7P
 [codecov-link]: https://codecov.io/gh/aysf/gopdf
   
