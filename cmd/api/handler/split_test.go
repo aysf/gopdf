@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -25,7 +24,6 @@ func TestPdfSplit(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	if err := PdfSplit(c); err != nil {
-		log.Println("liat error: " + err.Error())
 		t.Fatal(err)
 	}
 

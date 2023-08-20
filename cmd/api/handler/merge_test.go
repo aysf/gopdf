@@ -13,9 +13,22 @@ func TestPdfMerge(t *testing.T) {
 
 	e := echo.New()
 
+	jsonStr := ``
+
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/pdf/merge", strings.NewReader(jsonStr))
 	req.Header = map[string][]string{
 		"Content-Type": {"application/json"},
+	}
+
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := PdfMerge(c); err != nil {
+		t.Fatal(err)
+	}
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status code %d but got %d", http.StatusOK, rec.Code)
 	}
 
 }
