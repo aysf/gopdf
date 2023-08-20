@@ -10,23 +10,37 @@ import (
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/types"
 )
 
-const (
-	dirPath        = "/storage/image"
-	dirPathTest    = "/storage/testImage"
-	imageFileTest1 = "dhiva-krishna-YApS6TjKJ9c-unsplash.jpg"
-	imageFileTest2 = "dima-panyukov-DwxlhTvC16Q-unsplash.jpg"
-	imageFileTest3 = "kenny-eliason-FcyipqujfGg-unsplash.jpg"
+type (
+	ImgData struct {
+		InFiles []struct {
+			FileName string `json:"name" validate:"required"`
+			FilePath string `json:"path" validate:"required"`
+		} `json:"infiles"`
+		OutFile string `json:"outfile"`
+		OutPath string `json:"outpath"`
+		Configs struct {
+			PageSize string  `json:"page_size"`
+			Scale    float64 `json:"scale"`
+		} `json:"configs"`
+	}
 )
 
 func JpgToPdf(c echo.Context) error {
 
+	id := new(ImgData)
+	if err := c.Bind(id); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+
+	}
+
 	w, _ := os.Getwd()
-	filePath := w + dirPath
-	if1, if2, if3 := filePath+"/"+imageFileTest1, filePath+"/"+imageFileTest2, filePath+"/"+imageFileTest3
+	of := w + id.OutPath + "/" + id.OutFile
 
 	var ifs []string
 
-	ifs = append(ifs, if1, if2, if3)
+	for i := 0; i < len(id.InFiles); i++ {
+		ifs = append(ifs, w+id.InFiles[i].FilePath+"/"+id.InFiles[i].FileName)
+	}
 
 	imp := pdfcpu.Import{
 		PageDim:  types.PaperSize["A4"],
@@ -36,7 +50,15 @@ func JpgToPdf(c echo.Context) error {
 		InpUnit:  types.POINTS,
 	}
 
-	err := api.ImportImagesFile(ifs, filePath+"/jpg-to-pdf-output.pdf", &imp, nil)
+	if id.Configs.PageSize != "" {
+		imp.PageSize = id.Configs.PageSize
+		imp.PageDim = types.PaperSize[id.Configs.PageSize]
+	}
+	if id.Configs.Scale != 0.0 {
+		imp.Scale = id.Configs.Scale
+	}
+
+	err := api.ImportImagesFile(ifs, of, &imp, nil)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
