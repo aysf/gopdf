@@ -44,14 +44,25 @@ curl -X POST http://localhost:1323/api/v1/pdf/split \
 -d '{"name":"camry_ebrochure.pdf","path":"/storage/pdf", "range":"1-3,5,8-9"}'
 ```
 
-
-
 3. Merge PDFs
 
 ```
 curl -X POST http://localhost:1323/api/v1/pdf/merge \
 -H 'Content-Type: application/json' \
--d '{"infiles":[{"name":"camry_ebrochure.pdf","path":"/storage/pdf"},{"name":"mirai_ebrochure.pdf","path":"/storage/pdf"}], "outfile":"camry_mirai_ebrochure.pdf"}'
+-d '{
+  "infiles": [
+    {
+      "name": "camry_ebrochure.pdf",
+      "path": "/storage/pdf"
+    },
+    {
+      "name": "mirai_ebrochure.pdf",
+      "path": "/storage/pdf"
+    }
+  ],
+  "outfile": "camry_mirai_ebrochure.pdf"
+}'
+
 ```
 
 4. Convert JPG to PDF
@@ -59,7 +70,29 @@ curl -X POST http://localhost:1323/api/v1/pdf/merge \
 ```
 curl -X POST http://localhost:1323/api/v1/pdf/jpg-to-pdf \
 -H 'Content-Type: application/json' \
--d '{"infiles":[{"name":"camry_ebrochure.pdf","path":"/storage/pdf"},{"name":"mirai_ebrochure.pdf","path":"/storage/pdf"}], "outfile":"camry_mirai_ebrochure.pdf"}'
+-d '{
+  "infiles": [
+    {
+      "name": "dhiva-krishna-YApS6TjKJ9c-unsplash.jpg",
+      "path": "/storage/testImage"
+    },
+    {
+      "name": "dima-panyukov-DwxlhTvC16Q-unsplash.jpg",
+      "path": "/storage/testImage"
+    },
+    {
+      "name": "kenny-eliason-FcyipqujfGg-unsplash.jpg",
+      "path": "/storage/testImage"
+    }
+  ],
+  "outfile": "jpg-to-pdf-output.pdf",
+  "outpath": "/storage/testImage",
+  "configs": {
+    "page_size": "A4",
+    "scale": 0.95
+  }
+}'
+
 ```
 
 5. Reorder PDF pages
