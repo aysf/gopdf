@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,9 +11,6 @@ import (
 )
 
 func TestPdfMerge(t *testing.T) {
-
-	m, _ := os.Getwd()
-	log.Println("cek wd2: ", m)
 
 	e := echo.New()
 
@@ -35,5 +31,10 @@ func TestPdfMerge(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Errorf("expected status code %d but got %d", http.StatusOK, rec.Code)
 	}
+
+	t.Cleanup(func() {
+		w, _ := os.Getwd()
+		os.Remove(w + "/storage/pdf" + "/camry_mirai_ebrochure.pdf")
+	})
 
 }

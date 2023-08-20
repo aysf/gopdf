@@ -36,4 +36,10 @@ func TestPdfSplit(t *testing.T) {
 		t.Errorf("expected status code %d but got %d", http.StatusOK, rec.Code)
 	}
 
+	t.Cleanup(func() {
+		w, _ := os.Getwd()
+		os.Remove(w + "/storage/pdf" + "/camry_ebrochure_split_1-3.pdf")
+		os.Remove(w + "/storage/pdf" + "/camry_ebrochure_split_7-9.pdf")
+	})
+
 }
