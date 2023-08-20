@@ -37,16 +37,3 @@ func PdfHandler(c echo.Context) error {
 		"data":  data,
 	}, "    ")
 }
-
-type (
-	SplitData struct {
-		Name  string `json:"name" validate:"required"`
-		Path  string `json:"path" validate:"required"`
-		Range string `json:"range"`
-	}
-)
-
-func Join2Pdf(c echo.Context) error {
-
-	return nil
-}

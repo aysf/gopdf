@@ -12,5 +12,8 @@ func Route(e *echo.Echo) {
 
 	pdf.GET("/info", handler.PdfHandler)
 	pdf.POST("/split", handler.PdfSplit)
+	pdf.POST("/merge", handler.PdfMerge)
+	pdf.POST("/jpg-to-pdf", handler.JpgToPdf)
+	pdf.POST("/compress", handler.Compress)
 
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,6 +14,14 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
+)
+
+type (
+	SplitData struct {
+		Name  string `json:"name" validate:"required"`
+		Path  string `json:"path" validate:"required"`
+		Range string `json:"range"`
+	}
 )
 
 func PdfSplit(c echo.Context) error {
@@ -42,6 +51,14 @@ func PdfSplit(c echo.Context) error {
 		})
 	}
 
+	_, err = flatten2D(rn)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error": "range not valid: " + err.Error(),
+			"data":  nil,
+		})
+	}
+
 	f2, err := addBookmark(f, filePath, fileName, rn)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -52,7 +69,6 @@ func PdfSplit(c echo.Context) error {
 	defer f2.Close()
 
 	outDir := filePath
-
 	outputFileName := fileNameWithoutExt(sd.Name) + "_split"
 
 	err = api.Split(f2, outDir, outputFileName, 0, api.LoadConfiguration())
@@ -91,6 +107,41 @@ func splitRange(input string) ([][]int, error) {
 		}
 	}
 
+	log.Println(result)
+
+	return result, nil
+}
+
+func flatten2D(slice [][]int) ([]int, error) {
+	var result []int
+
+	for _, innerSlice := range slice {
+		if len(innerSlice) == 2 {
+			start, end := innerSlice[0], innerSlice[1]
+
+			if start > end {
+				return nil, errors.New("invalid input: start value is greater than end value")
+			}
+
+			for i := start; i <= end; i++ {
+				result = append(result, i)
+			}
+		} else if len(innerSlice) == 1 {
+			result = append(result, innerSlice[0])
+		} else {
+			return nil, errors.New("invalid input: inner slice must have 1 or 2 elements")
+		}
+	}
+
+	// Check for duplicate elements
+	seen := make(map[int]bool)
+	for _, num := range result {
+		if seen[num] {
+			return nil, errors.New("invalid input: non-unique element in the result slice")
+		}
+		seen[num] = true
+	}
+
 	return result, nil
 }
 
@@ -106,7 +157,7 @@ func addBookmark(f *os.File, filePath string, fileName string, r [][]int) (*os.F
 	b := []pdfcpu.Bookmark{}
 
 	for k, v := range r {
-		fn := fileName + "_split_" + strconv.Itoa(v[0])
+		fn := fileNameWithoutExt(fileName) + "_split_" + strconv.Itoa(v[0])
 		if len(v) == 2 {
 			fn += "-" + strconv.Itoa(v[1])
 		}
@@ -128,8 +179,6 @@ func addBookmark(f *os.File, filePath string, fileName string, r [][]int) (*os.F
 		}
 
 	}
-
-	// fmt.Println(b)
 
 	api.AddBookmarks(f, outputFile, b, false, api.LoadConfiguration())
 
