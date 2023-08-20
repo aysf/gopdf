@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -10,6 +12,9 @@ import (
 )
 
 func TestPdfSplit(t *testing.T) {
+
+	m, _ := os.Getwd()
+	log.Println("cek wd1: ", m)
 
 	e := echo.New()
 
