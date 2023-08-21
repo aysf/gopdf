@@ -8,33 +8,47 @@ import (
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
+type (
+	CompressData struct {
+		InFile  string `json:"infile"`
+		InPath  string `json:"inpath"`
+		OutFile string `json:"outfile"`
+		OutPath string `json:"outpath"`
+	}
+)
+
 func Compress(c echo.Context) error {
 
-	w, _ := os.Getwd()
-	filePath := "/storage/pdf/yle-flyers-word-list-picture-book-2018.pdf"
-	filePath2 := "/storage/pdf/yle-flyers-word-list-picture-book-2018_compressed.pdf"
+	cd := new(CompressData)
+	if err := c.Bind(cd); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
 
-	fullPath := w + filePath
-	fullPath2 := w + filePath2
+	w, _ := os.Getwd()
+	inFile := w + cd.InPath + "/" + cd.InFile
+	outFile := w + cd.OutPath + "/" + cd.OutFile
 
 	conf := api.LoadConfiguration()
 	conf.OptimizeDuplicateContentStreams = true
 	conf.WriteXRefStream = true
 
-	api.OptimizeFile(fullPath, fullPath2, conf)
-
-	fs, _ := os.Open(fullPath)
-	defer fs.Close()
-
-	ctx, err := api.ReadContextFile(fullPath2)
+	err := api.OptimizeFile(inFile, outFile, conf)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	err = api.OptimizeContext(ctx)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
+	// fs, _ := os.Open(inFile)
+	// defer fs.Close()
+
+	// ctx, err := api.ReadContextFile(outFile)
+	// if err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	// }
+
+	// err = api.OptimizeContext(ctx)
+	// if err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	// }
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"error": nil,

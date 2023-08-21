@@ -10,13 +10,21 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func TestPdfSplit(t *testing.T) {
+func TestCompress(t *testing.T) {
 
 	e := echo.New()
 
-	jsonStr := `{"name":"camry_ebrochure.pdf","path":"/storage/pdf", "range":"1-3,7-9"}`
+	jsonStr := `
+	{
+		"infile": "camry_ebrochure.pdf",
+		"inpath": "/storage/testPdf",
+		"outfile": "camry_ebrochure_compressed.pdf",
+		"outpath": "/storage/testPdf"
+	}`
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/pdf/split", strings.NewReader(jsonStr))
+	req := httptest.NewRequest(http.MethodPost,
+		"/api/v1/pdf/compress",
+		strings.NewReader(jsonStr))
 	req.Header = map[string][]string{
 		"Content-Type": {"application/json"},
 	}
@@ -24,7 +32,7 @@ func TestPdfSplit(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	if err := PdfSplit(c); err != nil {
+	if err := Compress(c); err != nil {
 		t.Fatal(err)
 	}
 
@@ -34,8 +42,7 @@ func TestPdfSplit(t *testing.T) {
 
 	t.Cleanup(func() {
 		w, _ := os.Getwd()
-		os.Remove(w + "/storage/pdf" + "/camry_ebrochure_split_1-3.pdf")
-		os.Remove(w + "/storage/pdf" + "/camry_ebrochure_split_7-9.pdf")
+		os.Remove(w + "/storage/testPdf" + "/camry_ebrochure_compressed.pdf")
 	})
 
 }

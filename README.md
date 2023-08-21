@@ -43,7 +43,11 @@ http://localhost:1323/api/v1/pdf/info?path=/storage/pdf&name=camry_ebrochure.pdf
 ```
 curl -X POST http://localhost:1323/api/v1/pdf/split \
 -H 'Content-Type: application/json' \
--d '{"name":"camry_ebrochure.pdf","path":"/storage/pdf", "range":"1-3,5,8-9"}'
+-d '{
+    "name": "camry_ebrochure.pdf",
+    "path": "/storage/pdf",
+    "range": "1-3,5,8-9"
+}'
 ```
 
 3. Merge PDFs
@@ -102,7 +106,12 @@ curl -X POST http://localhost:1323/api/v1/pdf/jpg-to-pdf \
 ```
 curl -X POST http://localhost:1323/api/v1/pdf/reorder \
 -H 'Content-Type: application/json' \
--d '{"name":"camry_ebrochure.pdf","path":"/storage/pdf", "page_number":"1-2", "new_page_number":"4"}'
+-d '{
+    "name": "camry_ebrochure.pdf",
+    "path": "/storage/pdf",
+    "page_number": "1-2",
+    "new_page_number": "4"
+}'
 ```
 
 6. Compress PDF
@@ -110,7 +119,12 @@ curl -X POST http://localhost:1323/api/v1/pdf/reorder \
 ```
 curl -X POST http://localhost:1323/api/v1/pdf/compress \
 -H 'Content-Type: application/json' \
--d '{"name":"camry_ebrochure.pdf","path":"/storage/pdf", "page_number":"1-2", "new_page_number":"4"}'
+-d '{
+    "infile": "camry_ebrochure.pdf",
+    "inpath": "/storage/testPdf",
+    "outfile": "camry_ebrochure_compressed.pdf",
+    "outpath": "/storage/testPdf"
+}'
 ```
 
 ## Credits

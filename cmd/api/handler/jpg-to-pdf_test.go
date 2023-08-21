@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -51,4 +52,9 @@ func TestJpgToPdf(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Errorf("expected status code %d but got %d", http.StatusOK, rec.Code)
 	}
+
+	t.Cleanup(func() {
+		w, _ := os.Getwd()
+		os.Remove(w + "/storage/testImage" + "/jpg-to-pdf-output.pdf")
+	})
 }
