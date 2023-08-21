@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -106,8 +105,6 @@ func splitRange(input string) ([][]int, error) {
 			result[i] = []int{start, end}
 		}
 	}
-
-	log.Println(result)
 
 	return result, nil
 }
