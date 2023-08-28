@@ -1,6 +1,6 @@
 module github.com/aysf/gopdf
 
-replace github.com/pdfcpu/pdfcpu => /Users/ananto/Sandbox/contrib_gopdf/pdfcpu
+// replace github.com/pdfcpu/pdfcpu => /Users/ananto/Sandbox/contrib_gopdf/pdfcpu
 
 go 1.20
 
