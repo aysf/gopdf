@@ -1,6 +1,6 @@
 module github.com/aysf/gopdf
 
-// replace github.com/pdfcpu/pdfcpu => /Users/ananto/Sandbox/contrib_gopdf/pdfcpu
+// replace github.com/aysf/pdfcpu v0.0.0-20230828023228-6e9233cc3e2e => /Users/ananto/Sandbox/contrib_gopdf/pdfcpu
 
 go 1.20
 
@@ -8,6 +8,8 @@ require (
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/pdfcpu/pdfcpu v0.5.0
 )
+
+replace github.com/pdfcpu/pdfcpu v0.5.0 => github.com/aysf/pdfcpu v0.0.0-20230828023228-6e9233cc3e2e
 
 require (
 	github.com/kr/pretty v0.1.0 // indirect
