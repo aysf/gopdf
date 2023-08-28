@@ -24,7 +24,7 @@ func TestPdfMerge(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	if err := PdfMerge(c); err != nil {
+	if err := Merge(c); err != nil {
 		t.Fatal(err)
 	}
 

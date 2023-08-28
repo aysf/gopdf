@@ -13,7 +13,7 @@ func main() {
 	routes.Route(e)
 
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
+		return c.String(http.StatusOK, "Welcome to PDF API")
 	})
 
 	e.Logger.Fatal(e.Start(":1323"))

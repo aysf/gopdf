@@ -10,10 +10,13 @@ func Route(e *echo.Echo) {
 	v1 := api.Group("/v1")
 	pdf := v1.Group("/pdf")
 
-	pdf.GET("/info", handler.PdfHandler)
-	pdf.POST("/split", handler.PdfSplit)
-	pdf.POST("/merge", handler.PdfMerge)
+	pdf.GET("/info", handler.Info)
+	pdf.POST("/split", handler.Split)
+	pdf.POST("/merge", handler.Merge)
 	pdf.POST("/jpg-to-pdf", handler.JpgToPdf)
 	pdf.POST("/compress", handler.Compress)
+	pdf.POST("/trim", handler.Trim)
+	pdf.POST("/remove", handler.Remove)
+	pdf.POST("/reorder", handler.Reorder)
 
 }
