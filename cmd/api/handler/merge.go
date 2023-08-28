@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func PdfMerge(c echo.Context) error {
+func Merge(c echo.Context) error {
 
 	md := new(MergeData)
 
@@ -36,9 +36,9 @@ func PdfMerge(c echo.Context) error {
 
 	var outFile string = md.OutFile
 	if outFile == "" {
-		outFile = w + "/storage/pdf" + "/" + "merged_file"
+		outFile = w + md.InFiles[0].FilePath + "/" + "merged_file"
 	} else {
-		t := w + "/storage/pdf" + "/" + outFile
+		t := w + md.InFiles[0].FilePath + "/" + outFile
 		outFile = t
 	}
 
@@ -52,3 +52,8 @@ func PdfMerge(c echo.Context) error {
 		"data":  "success",
 	})
 }
+
+// func mergePDF() error {
+
+// 	return nil
+// }

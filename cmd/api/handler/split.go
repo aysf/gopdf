@@ -2,28 +2,35 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 )
 
 type (
 	SplitData struct {
-		Name  string `json:"name" validate:"required"`
-		Path  string `json:"path" validate:"required"`
-		Range string `json:"range"`
+		Name          string   `json:"name" validate:"required"`
+		Path          string   `json:"path" validate:"required"`
+		Range         string   `json:"range"`
+		SelectedPages []string `json:"selected_pages"`
 	}
 )
 
-func PdfSplit(c echo.Context) error {
+var filePath string
+var fileName string
+
+func Split(c echo.Context) error {
+
+	var err error
 
 	sd := new(SplitData)
 	if err := c.Bind(sd); err != nil {
@@ -31,49 +38,16 @@ func PdfSplit(c echo.Context) error {
 	}
 
 	w, _ := os.Getwd()
-	filePath := w + sd.Path + "/"
-	fileName := sd.Name
+	filePath = w + sd.Path + "/"
+	fileName = sd.Name
+	outDir := filePath + fileNameWithoutExt(fileName) + "_dir"
 
-	f, err := os.Open(filePath + fileName)
-	if err != nil {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"error": "error opening file: " + err.Error(),
-			"data":  nil,
-		})
-	}
+	_ = createDirIfNotExist(outDir)
 
-	rn, err := splitRange(sd.Range)
+	err = SplitPDF(sd.SelectedPages, filePath, fileName, outDir)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"error": "error split range: " + err.Error(),
-			"data":  nil,
-		})
-	}
-
-	_, err = flatten2D(rn)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"error": "range not valid: " + err.Error(),
-			"data":  nil,
-		})
-	}
-
-	f2, err := addBookmark(f, filePath, fileName, rn)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"error": "error adding bookmark: " + err.Error(),
-			"data":  nil,
-		})
-	}
-	defer f2.Close()
-
-	outDir := filePath
-	outputFileName := fileNameWithoutExt(sd.Name) + "_split"
-
-	err = api.Split(f2, outDir, outputFileName, 0, api.LoadConfiguration())
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"error": "error split pdf: " + err.Error(),
+			"error": "error spliting pages: " + err.Error(),
 			"data":  nil,
 		})
 	}
@@ -87,9 +61,52 @@ func PdfSplit(c echo.Context) error {
 
 }
 
-func splitRange(input string) ([][]int, error) {
-	groups := strings.Split(input, ",")
+func SplitPDF(pages []string, filePath, fileName, outDir string) error {
+	var err error
+
+	f, err := os.Open(filePath + fileName)
+
+	if err != nil {
+		return errors.New("error opening file: " + err.Error())
+	}
+
+	rn, om, err := strToIntArr(pages)
+
+	if err != nil {
+		return errors.New("error converting page(s) string to array: " + err.Error())
+	}
+	_, err = flatten2D(rn)
+	if err != nil {
+		return errors.New("range not valid: " + err.Error())
+	}
+
+	mc, err := api.ReadContextFile(filePath + fileName)
+	if err != nil {
+		return errors.New("error reading context: " + err.Error())
+	}
+
+	f2, err := addBookmark(f, filePath, fileName, rn, om, mc)
+	if err != nil {
+		return errors.New("error bookmarking page(s): " + err.Error())
+	}
+	defer f2.Close()
+
+	if outDir == "" {
+		outDir = filePath + "/" + fileNameWithoutExt(fileName) + "_dir"
+	}
+
+	// err = api.Split(f2, outDir, outputFileName, 0, api.LoadConfiguration())
+	err = api.SplitFile(filePath+"temp_"+fileName, outDir, 0, api.LoadConfiguration())
+	if err != nil {
+		return errors.New("error split API: " + err.Error())
+	}
+	return nil
+}
+
+func strToIntArr(groups []string) ([][]int, map[int]int, error) {
+
 	result := make([][]int, len(groups))
+	originalOrderMap := make(map[int]int)
 
 	for i, group := range groups {
 		ranges := strings.Split(group, "-")
@@ -100,13 +117,23 @@ func splitRange(input string) ([][]int, error) {
 		} else {
 			end, _ := strconv.Atoi(ranges[1])
 			if start > end {
-				return nil, errors.New("invalid range")
+				return nil, originalOrderMap, errors.New("invalid range")
 			}
 			result[i] = []int{start, end}
 		}
 	}
 
-	return result, nil
+	// Create a map to store the original order
+	for idx, value := range result {
+		originalOrderMap[value[0]] = idx
+	}
+
+	// order the 2d int array
+	sort.Slice(result, func(i, j int) bool {
+		return result[i][0] < result[j][0]
+	})
+
+	return result, originalOrderMap, nil
 }
 
 func flatten2D(slice [][]int) ([]int, error) {
@@ -142,48 +169,81 @@ func flatten2D(slice [][]int) ([]int, error) {
 	return result, nil
 }
 
-func addBookmark(f *os.File, filePath string, fileName string, r [][]int) (*os.File, error) {
+func addBookmark(f *os.File, filePath string, fileName string, groups [][]int, orderMap map[int]int, fileCtx *model.Context) (*os.File, error) {
 
 	outputPath := filePath + "temp_" + fileName
 	outputFile, err := os.Create(outputPath)
 	if err != nil {
-		fmt.Println("Error creating output PDF:", err)
 		return nil, err
 	}
 
 	b := []pdfcpu.Bookmark{}
 
-	for k, v := range r {
-		fn := fileNameWithoutExt(fileName) + "_split_" + strconv.Itoa(v[0])
-		if len(v) == 2 {
-			fn += "-" + strconv.Itoa(v[1])
+	totalPage := fileCtx.PageCount
+
+	for i := 0; i < len(groups); i++ {
+		curGroup := groups[i]
+		// nextGroup := groups[i+1]
+
+		fn := zeroPadding(orderMap[curGroup[0]], 3) + "_-" + fileNameWithoutExt(fileName) + "_split_" + strconv.Itoa(curGroup[0])
+		if len(curGroup) == 2 {
+			fn += "-" + strconv.Itoa(curGroup[1])
 		}
 
 		b = append(b, pdfcpu.Bookmark{
-			PageFrom: v[0],
+			PageFrom: curGroup[0],
 			Title:    fn,
 		})
-		if len(v) == 1 {
-			b = append(b, pdfcpu.Bookmark{
-				PageFrom: v[0] + 1,
-				Title:    "temp_" + strconv.Itoa(k),
-			})
-		} else {
-			b = append(b, pdfcpu.Bookmark{
-				PageFrom: v[1] + 1,
-				Title:    "temp_" + strconv.Itoa(k),
-			})
+
+		if curGroup[len(curGroup)-1] == totalPage {
+			break
 		}
+
+		b = append(b, pdfcpu.Bookmark{
+			PageFrom: curGroup[len(curGroup)-1] + 1,
+			Title:    "temp_" + strconv.Itoa(i),
+		})
 
 	}
 
-	api.AddBookmarks(f, outputFile, b, false, api.LoadConfiguration())
+	err = api.AddBookmarks(f, outputFile, b, false, api.LoadConfiguration())
+	if err != nil {
+		return nil, err
+	}
 
 	return outputFile, f.Close()
 }
 
+func zeroPadding(input int, totalDigits int) string {
+	inputStr := strconv.Itoa(input)
+
+	paddingCount := totalDigits - len(inputStr)
+
+	paddedStr := ""
+	for i := 0; i < paddingCount; i++ {
+		paddedStr += "0"
+	}
+
+	paddedStr += inputStr
+
+	return paddedStr
+}
+
 func fileNameWithoutExt(fileName string) string {
 	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
+}
+
+func createDirIfNotExist(path string) error {
+
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		_ = os.MkdirAll(path, os.ModePerm)
+		// if err != nil {
+		// 	return fmt.Errorf("failed creating directory: %v", err)
+		// }
+	}
+
+	return nil
 }
 
 func removeFileTemp(dir string) error {
@@ -198,7 +258,6 @@ func removeFileTemp(dir string) error {
 			if err != nil {
 				return err
 			}
-			fmt.Println("Removed:", path)
 		}
 
 		return nil

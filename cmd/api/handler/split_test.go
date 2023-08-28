@@ -14,7 +14,11 @@ func TestPdfSplit(t *testing.T) {
 
 	e := echo.New()
 
-	jsonStr := `{"name":"camry_ebrochure.pdf","path":"/storage/pdf", "range":"1-3,7-9"}`
+	jsonStr := `{
+		"name": "camry_ebrochure.pdf",
+		"path": "/storage/testPdf",
+		"selected_pages": ["1-3","5","8-9"]
+	}`
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/pdf/split", strings.NewReader(jsonStr))
 	req.Header = map[string][]string{
@@ -24,7 +28,7 @@ func TestPdfSplit(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	if err := PdfSplit(c); err != nil {
+	if err := Split(c); err != nil {
 		t.Fatal(err)
 	}
 
@@ -34,8 +38,9 @@ func TestPdfSplit(t *testing.T) {
 
 	t.Cleanup(func() {
 		w, _ := os.Getwd()
-		os.Remove(w + "/storage/pdf" + "/camry_ebrochure_split_1-3.pdf")
-		os.Remove(w + "/storage/pdf" + "/camry_ebrochure_split_7-9.pdf")
+		os.Remove(w + "/storage/testPdf" + "/camry_ebrochure_split_1-3.pdf")
+		os.Remove(w + "/storage/testPdf" + "/camry_ebrochure_split_5.pdf")
+		os.Remove(w + "/storage/testPdf" + "/camry_ebrochure_split_8-9.pdf")
 	})
 
 }
