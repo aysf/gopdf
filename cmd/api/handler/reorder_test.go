@@ -32,6 +32,7 @@ func TestReorder(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	if err := Reorder(c); err != nil {
+		// TODO: handling error and bug
 		// t.Fatal(err)
 	}
 

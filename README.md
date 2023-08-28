@@ -25,6 +25,7 @@ Providing tooling to work with PDF documents, usually in the form of an API.
 - [x] convert JPG to PDF
 - [x] compress PDF
 - [x] reorder PDF pages
+- [ ] lock PDF
 
 
 ## How to Use
@@ -161,7 +162,7 @@ curl -X POST http://localhost:1323/api/v1/pdf/compress \
 }'
 ```
 
-7. Reorder PDF pages
+7. Reorder PDF pages*
 
 This request example generates new pdf file containing pages that have been sorted based on `new_page_order` field input.
 
@@ -176,6 +177,8 @@ curl -X POST http://localhost:1323/api/v1/pdf/reorder \
     "new_page_order": ["3-31","1-2","32-36"]
 }'
 ```
+
+issue: https://github.com/pdfcpu/pdfcpu/issues/687
 
 ## Credits
 
