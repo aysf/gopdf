@@ -14,7 +14,20 @@ func TestPdfMerge(t *testing.T) {
 
 	e := echo.New()
 
-	jsonStr := `{"infiles":[{"name":"camry_ebrochure.pdf","path":"/storage/pdf"},{"name":"mirai_ebrochure.pdf","path":"/storage/pdf"}], "outfile":"camry_mirai_ebrochure.pdf"}`
+	jsonStr := `
+	{
+		"infiles": [
+		  {
+			"name": "camry_ebrochure.pdf",
+			"path": "/storage/testPdf"
+		  },
+		  {
+			"name": "mirai_ebrochure.pdf",
+			"path": "/storage/testPdf"
+		  }
+		],
+		"outfile": "camry_mirai_ebrochure.pdf"
+	  }`
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/pdf/merge", strings.NewReader(jsonStr))
 	req.Header = map[string][]string{
