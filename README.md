@@ -34,7 +34,7 @@ Providing tooling to work with PDF documents, usually in the form of an API.
 
 - to run the API use `go run cmd/api/*.go` or `make api`
 - to test run `go test -v ./...` or `make test`
-- to see test coverage, run `test makec` and `go tool cover -html=coverage.out`
+- to see test coverage, run `make tesc` and `go tool cover -html=coverage.out`
 
 ### Example Request
 
